@@ -1,14 +1,20 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
-
-const root = ReactDOM.createRoot(document.getElementById('root'));
+import "./index.css";
+import reportWebVitals from "./reportWebVitals";
+import "swiper/css";
+import { ThemeProvider, BaseStyles } from "@primer/react";
+import { RouterProvider } from "react-router-dom";
+import router from "./router/config";
+const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
-  <React>
-    <App />
-  </React>
+  <React.StrictMode>
+    <ThemeProvider>
+      <BaseStyles>
+        <RouterProvider router={router} />
+      </BaseStyles>
+    </ThemeProvider>
+  </React.StrictMode>
 );
 
 // If you want to start measuring performance in your app, pass a function
