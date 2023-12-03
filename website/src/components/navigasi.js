@@ -1,5 +1,6 @@
 import { Button } from "@primer/react";
 import logo from "../assets/image/logo.svg";
+import { Link } from "react-router-dom";
 function NavigasiComponent() {
   return (
     <div>
@@ -13,13 +14,15 @@ function NavigasiComponent() {
             Tempat Hiburan
           </span>
         </div>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-2 font-rubikmedium">
           <Button variant="invisible" size="small">
             Masuk
           </Button>
-          <Button variant="primary" size="small">
-            Daftar
-          </Button>
+          <Link to={"/register"}>
+            <Button variant="primary" size="small">
+              Daftar
+            </Button>
+          </Link>
         </div>
       </div>
     </div>

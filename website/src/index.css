@@ -1,3 +1,26 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base{
+  @font-face {
+    font-family: rubikbold;
+    src: url('./assets/font/Rubik-Bold.ttf') format('truetype');
+  }
+  @font-face {
+    font-family: rubiklight;
+    src: url('./assets/font/Rubik-Light.ttf') format('truetype');
+  }
+  @font-face {
+    font-family: rubikmedium;
+    src: url('./assets/font/Rubik-Medium.ttf') format('truetype');
+  }
+  @font-face {
+    font-family: rubikregular;
+    src: url('./assets/font/Rubik-Regular.ttf') format('truetype');
+  }
+  @font-face {
+    font-family: rubiksemibold;
+    src: url('./assets/font/Rubik-SemiBold.ttf') format('truetype');
+  }
+}
