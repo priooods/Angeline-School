@@ -18,4 +18,8 @@ class MUserTab extends Authenticatable
     {
         return \Modules\User\Database\factories\MUserTabFactory::new();
     }
+
+    public function detail(){
+        return $this->hasOne(TUserDetailTab::class,'m_user_tab_id','id');
+    }
 }

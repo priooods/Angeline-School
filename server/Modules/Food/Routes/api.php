@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Http\Request;
-use Modules\User\Http\Controllers\UserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,10 +13,6 @@ use Modules\User\Http\Controllers\UserController;
 |
 */
 
-
-Route::post('login', [UserController::class,'login']);
-Route::get('formRegister', [UserController::class,'formRegister']);
-Route::get('formLogin', [UserController::class,'formLogin']);
-Route::middleware(['auth:sanctum'])->group(function () {
-    Route::resource('user', UserController::class);
+Route::middleware('auth:api')->get('/food', function (Request $request) {
+    return $request->user();
 });

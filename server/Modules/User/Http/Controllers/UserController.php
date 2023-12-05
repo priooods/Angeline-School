@@ -73,6 +73,7 @@ class UserController extends Controller
             ]);
         }
     }
+
     /**
      * Display a listing of the resource.
      * @return Renderable
@@ -86,9 +87,38 @@ class UserController extends Controller
      * Show the form for creating a new resource.
      * @return Renderable
      */
-    public function create()
+    public function formRegister()
     {
-        return view('user::create');
+        return $this->controller->responses('FORM REGISTER',200,[
+            [
+                "key" => "username",
+                "label" => "Fullname",
+                "value" => null,
+                "className" => "",
+                "type" => "string"
+            ],
+            [
+                "key" => "email",
+                "label" => "Email",
+                "value" => null,
+                "className" => "",
+                "type" => "email"
+            ],
+            [
+                "key" => "password",
+                "label" => "Password",
+                "value" => null,
+                "className" => "",
+                "type" => "password"
+            ],
+            [
+                "key" => "repassword",
+                "label" => "Typing Again Password",
+                "value" => null,
+                "className" => "",
+                "type" => "password"
+            ]
+        ]);
     }
 
     /**
@@ -125,9 +155,24 @@ class UserController extends Controller
      * @param int $id
      * @return Renderable
      */
-    public function show($id)
+    public function formLogin()
     {
-        return view('user::show');
+        return $this->controller->responses('FORM LOGIN',200,[
+            [
+                "key" => "email",
+                "label" => "Email",
+                "value" => null,
+                "className" => "",
+                "type" => "email"
+            ],
+            [
+                "key" => "password",
+                "label" => "Password",
+                "value" => null,
+                "className" => "",
+                "type" => "password"
+            ],
+        ]);
     }
 
     /**
@@ -137,7 +182,52 @@ class UserController extends Controller
      */
     public function edit($id)
     {
-        return view('user::edit');
+        $user = $this->user->where('id', $id)->with('detail')->first();
+        return $this->controller->responses('FORM LOGIN',200,[
+            [
+                "key" => "username",
+                "label" => "Fullname",
+                "value" => $user->fullname,
+                "className" => "",
+                "type" => "string"
+            ],
+            [
+                "key" => "email",
+                "label" => "Email",
+                "value" => $user->email,
+                "className" => "",
+                "type" => "email"
+            ],
+            [
+                "key" => "password",
+                "label" => "Password",
+                "value" => decrypt($user->repassword),
+                "className" => "",
+                "type" => "password"
+            ],
+            [
+                "key" => "age",
+                "label" => "Usia",
+                "value" => $user->detail?->age,
+                "className" => "",
+                "type" => "number"
+            ],
+            [
+                "key" => "m_gender_tab_id",
+                "label" => "Gender",
+                "value" => $user->detail?->m_gender_tab_id,
+                "className" => "",
+                "type" => "select",
+                "array" => $this->gender->all()
+            ],
+            [
+                "key" => "city",
+                "label" => "Kota Asal",
+                "value" => $user->detail?->city,
+                "className" => "",
+                "type" => "string"
+            ],
+        ]);
     }
 
     /**
@@ -177,8 +267,8 @@ class UserController extends Controller
         //
     }
 
-    public function logout(Request $request){
-
+    public function logout(Request $request)
+    {
         $request->user()->currentAccessToken()->delete();
         return $this->controller->responses("Logout Success");
     }

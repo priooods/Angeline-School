@@ -1,5 +1,7 @@
 {
     "User": true,
     "Anggota": true,
-    "Master": true
+    "Master": true,
+    "Food": true,
+    "Approval": true
 }
