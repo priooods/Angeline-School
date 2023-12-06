@@ -23,6 +23,7 @@ return new class extends Migration
             $table->char('longitude', 20)->nullable();
             $table->json('video')->nullable();
             $table->json('images')->nullable();
+            $table->timestamps();
             $table->foreign('m_user_tabs_id')->on('m_user_tabs')->references('id');
         });
     }

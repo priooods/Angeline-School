@@ -126,7 +126,7 @@ class UserController extends Controller
      * @param Request $request
      * @return Renderable
      */
-    public function store(Request $request)
+    public function register(Request $request)
     {
         if($valid = $this->controller->validating($request,[
             'fullname' => 'required',

@@ -10,7 +10,7 @@ class MStatusTab extends Model
     use HasFactory;
 
     protected $fillable = ['title','status'];
-    protected $timestamps = false;
+    public $timestamps = false;
     
     protected static function newFactory()
     {
