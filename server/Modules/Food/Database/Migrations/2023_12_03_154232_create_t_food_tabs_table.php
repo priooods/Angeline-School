@@ -21,8 +21,6 @@ return new class extends Migration
             $table->char('shop', 100);
             $table->char('latitude', 20)->nullable();
             $table->char('longitude', 20)->nullable();
-            $table->json('video')->nullable();
-            $table->json('images')->nullable();
             $table->timestamps();
             $table->foreign('m_user_tabs_id')->on('m_user_tabs')->references('id');
         });

@@ -13,12 +13,12 @@ use Modules\User\Entities\MUserTab;
 
 class FoodController extends Controller
 {
+
     protected $user;
     protected $food;
     protected $transaction;
     protected $menu;
     protected $controller;
-
 
     public function __construct(
         MUserTab $user, 
@@ -73,41 +73,36 @@ class FoodController extends Controller
 
         try {
             DB::beginTransaction();
-            $arr_video = array();
-            $arr_image = array();
-            $varKeyFile = ".file";
-            if(isset($request->image)){
-                foreach ($request->image as $key => $value) {
-                    if($request->hasFile('image.'.$key . $varKeyFile))
-                        {
-                            $images = $request->file('image.'.$key . $varKeyFile);
-                            $filename = "FDIM_".($key+1).$request->m_user_tabs_id
-                                .$this->controller->generateCode()
-                                ."."
-                                .pathinfo($images->getClientOriginalName(), PATHINFO_EXTENSION);
-                            $images->move(storage_path("images"), $filename);
-                            array_push($arr_image, $filename);
-                        }
-                }
-            } 
-            if(isset($request->videos)){
-                foreach ($request->videos as $key => $value) {
-                    if($request->hasFile('videos.'.$key . $varKeyFile))
-                        {
-                            $videos = $request->file('videos.'.$key . $varKeyFile);
-                            $filename = "FDVI_".($key+1).$request->m_user_tabs_id
-                                .$this->controller->generateCode()
-                                ."."
-                                .pathinfo($videos->getClientOriginalName(), PATHINFO_EXTENSION);
-                            $videos->move(storage_path("videos"), $filename);
-                            array_push($arr_video, $filename);
-                        }
-                }
+            if(isset($request->image) && count($request->image) > 0){
+                $arr_image = $this->storageFileFood(
+                    $request->image,
+                    $this->controller->pathImage,
+                    "FDIM",
+                    "file",
+                    $request);
             }
 
-            $request["video"] = $arr_video;
-            $request["images"] = $arr_image;
-            $food = $this->food->create($request->all());
+            if(isset($request->video) && count($request->video) > 0){
+                $arr_video = $this->storageFileFood(
+                    $request->video,
+                    $this->controller->pathVideo,
+                    "FDVI",
+                    "file",
+                    $request);
+            }
+
+            $request->image = $arr_image ?? null;
+            $request->video = $arr_video ?? null;
+            $food = $this->food->create([
+                "m_user_tabs_id" => $request->m_user_tabs_id,
+                "description" => $request->description,
+                "price" => $request->price,
+                "shop" => $request->shop,
+                "latitude" => $request->latitude ?? null,
+                "longitude" => $request->longitude ?? null,
+                "video" => $request->video,
+                "image" => $request->image,
+            ]);
 
             $this->transaction->create([
                 't_food_tabs_id' => $food->id,
@@ -157,7 +152,76 @@ class FoodController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        if($valid = $this->controller->validating($request,[
+            'description' => 'required',
+            'price' => 'required|max:8',
+            'shop' => 'required|max:100',
+        ])){
+            return $valid;
+        }
+
+        try {
+            DB::beginTransaction();
+            $food = $this->food->where('id',$id)->first();
+            if(isset($request->image) && count($request->image) > 0){
+                $arr_image = $this->storageFileFood(
+                    $request->image,
+                    $this->controller->pathImage,
+                    "FDIM",
+                    "file",
+                    $request);
+                $request->images = $arr_image;
+                foreach ($food->images as $value) {
+                    unlink(storage_path($this->controller->pathImage.'/'.$value));
+                }
+                $food->update([
+                    "images" => null
+                ]);
+            }
+            if(isset($request->video) && count($request->video) > 0){
+                $arr_video = $this->storageFileFood($request->videos,
+                $this->controller->pathImage,"FDVI","file",$request);
+                $request["videos"] = $arr_video;
+                foreach ($food->images as $value) {
+                    unlink(storage_path($this->controller->pathImage.'/'.$value));
+                }
+                $food->update([
+                    "videos" => null
+                ]);
+            }
+            $food->update($request->all());
+            DB::commit();
+            return $this->controller->responses("FOOD UPDATED",200, $food);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return $this->controller->responses("FAILURE UPDATED", 500, $th->getMessage());
+        }
+    }
+
+    public function storageFileFood(
+        $arrays,
+        string $requestKey,
+        string $codeNameFile, 
+        string $keyFile,
+        Request $request)
+    {
+        $arrFile = array();
+        foreach ($arrays as $key => $value) {
+            if($request->hasFile($requestKey.'.'.$key . '.' . $keyFile))
+            {
+                $images = $request->file($requestKey.'.'.$key . '.' . $keyFile);
+                $filename = $codeNameFile."_".($key+1).$request->m_user_tabs_id
+                    .$this->controller->generateCode()
+                    ."."
+                    .pathinfo($images->getClientOriginalName(), PATHINFO_EXTENSION);
+                $images->move(storage_path($requestKey), $filename);
+                array_push($arrFile, $filename);
+            }
+        }
+        if(count($arrFile) < 1) {
+            return $arrFile = null;
+        }
+        return $arrFile;
     }
 
     /**

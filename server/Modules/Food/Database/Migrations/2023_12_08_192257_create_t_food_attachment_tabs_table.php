@@ -13,10 +13,12 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('m_akses_tabs', function (Blueprint $table) {
-            $table->tinyIncrements('id');
-            $table->char('title',8);
-            $table->tinyInteger('status')->default(0);
+        Schema::create('t_food_attachment_tabs', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger("t_food_tabs_id");
+            $table->char("filename", 80);
+            $table->char('size', 5);
+            $table->foreign('t_food_tabs_id')->on('t_food_tabs')->references('id')->onDelete('cascade');
         });
     }
 
@@ -27,6 +29,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('m_akses_tabs');
+        Schema::dropIfExists('t_food_attachment_tabs');
     }
 };

@@ -12,6 +12,10 @@ class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
+
+    public string $pathImage = "image";
+    public string $pathVideo = "video";
+
     public function validating($request, $items) {
         $validate = Validator::make($request->all(), $items);
         if ($validate->fails()) {

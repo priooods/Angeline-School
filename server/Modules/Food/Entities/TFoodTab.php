@@ -10,13 +10,7 @@ class TFoodTab extends Model
 {
     use HasFactory;
 
-    protected $fillable = ["m_user_tabs_id","description","price","shop","latitude","longitude",
-            "video","images"];
-
-    protected $casts = [
-        "images" => 'array',
-        "video" => 'array',
-    ];
+    protected $fillable = ["m_user_tabs_id","description","price","shop","latitude","longitude"];
     
     protected static function newFactory()
     {

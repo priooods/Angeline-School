@@ -129,7 +129,7 @@ class UserController extends Controller
     public function register(Request $request)
     {
         if($valid = $this->controller->validating($request,[
-            'fullname' => 'required',
+            'fullname' => 'required|max:30',
             'email' => 'required|unique:m_user_tabs',
             'password' => 'required|string|min:8',
         ])){
