@@ -15,3 +15,6 @@ use Modules\Food\Http\Controllers\FoodController;
 */
 
 Route::resource('food', FoodController::class);
+Route::prefix('food')->group(function () {
+    Route::delete('attachment/{id}',[FoodController::class,'destroyFile']);
+});

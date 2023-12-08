@@ -17,6 +17,10 @@ class TFoodTab extends Model
         return \Modules\Food\Database\factories\TFoodTabFactory::new();
     }
 
+    public function attachment(){
+        return $this->hasMany(TFoodAttachmentTab::class,'t_food_tabs_id','id');
+    }
+
     public function approval(){
         return $this->hasOne(TApprovalTransactionFoodTabs::class,'t_food_tabs_id','id')->orderBy('id','DESC')->limit(1);
     }

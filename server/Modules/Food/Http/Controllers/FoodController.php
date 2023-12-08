@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Modules\Approval\Entities\TApprovalTransactionFoodTabs;
+use Modules\Food\Entities\TFoodAttachmentTab;
 use Modules\Food\Entities\TFoodTab;
 use Modules\User\Entities\MUserTab;
 
@@ -18,18 +19,21 @@ class FoodController extends Controller
     protected $food;
     protected $transaction;
     protected $menu;
+    protected $tFoodAttachmentTab;
     protected $controller;
 
     public function __construct(
         MUserTab $user, 
         TFoodTab $food, 
         TApprovalTransactionFoodTabs $transaction,
+        TFoodAttachmentTab $tFoodAttachmentTab,
         ControllersController $controller
     ) {
         $this->user = $user;
         $this->food = $food;
         $this->transaction = $transaction;
         $this->controller = $controller;
+        $this->tFoodAttachmentTab = $tFoodAttachmentTab;
     }
     /**
      * Display a listing of the resource.
@@ -41,7 +45,7 @@ class FoodController extends Controller
             $this->food
             ->with(['approval' => function($a){
                 $a->with('status');
-            }])
+            },'attachment'])
             ->get()
         );
     }
@@ -73,49 +77,75 @@ class FoodController extends Controller
 
         try {
             DB::beginTransaction();
-            if(isset($request->image) && count($request->image) > 0){
-                $arr_image = $this->storageFileFood(
-                    $request->image,
-                    $this->controller->pathImage,
-                    "FDIM",
-                    "file",
-                    $request);
-            }
-
-            if(isset($request->video) && count($request->video) > 0){
-                $arr_video = $this->storageFileFood(
-                    $request->video,
-                    $this->controller->pathVideo,
-                    "FDVI",
-                    "file",
-                    $request);
-            }
-
-            $request->image = $arr_image ?? null;
-            $request->video = $arr_video ?? null;
-            $food = $this->food->create([
-                "m_user_tabs_id" => $request->m_user_tabs_id,
-                "description" => $request->description,
-                "price" => $request->price,
-                "shop" => $request->shop,
-                "latitude" => $request->latitude ?? null,
-                "longitude" => $request->longitude ?? null,
-                "video" => $request->video,
-                "image" => $request->image,
-            ]);
-
+            $food = $this->food->create($request->all());
             $this->transaction->create([
                 't_food_tabs_id' => $food->id,
                 'm_status_tabs_id' => 1,
                 'responded_by' => $request->m_user_tabs_id,
                 'responded_at' => now(),
             ]);
+            $this->addAttachment($food,$request);
 
             DB::commit();
             return $this->controller->responses("FOOD CREATED",200, $food);
         } catch (\Throwable $th) {
             DB::rollBack();
             return $this->controller->responses("FAILURE REQUEST",500,$th->getMessage());
+        }
+    }
+
+    public function addAttachment(TFoodTab $food, Request $request){
+        $keyFile = '.file';
+        if(isset($request->image) && count($request->image) > 0){
+            $arrFile = array();
+            foreach ($request->image as $key => $value) {
+                if($request->hasFile($this->controller->pathImage.'.'.$key . $keyFile))
+                {
+                    $files = $request->file($this->controller->pathImage.'.'.$key . $keyFile);
+                    $size = $files->getSize() / 1000;
+                    $filename = $request->m_user_tabs_id
+                        .$this->controller->generateCode()
+                        ."."
+                        .pathinfo($files->getClientOriginalName(), PATHINFO_EXTENSION);
+                    $files->move(storage_path($this->controller->pathImage), $filename);
+                    array_push(
+                        $arrFile,
+                        [
+                            't_food_tabs_id' => $food->id,
+                            "filename" => $filename,
+                            "size" => $size,
+                            "type" => 1,
+                        ]
+                    );
+                }
+            }
+            $food->attachment()->createMany($arrFile);
+        }
+
+        if(isset($request->video) && count($request->video) > 0){
+            $arrFile = array();
+            foreach ($request->video as $key => $value) {
+                if($request->hasFile($this->controller->pathVideo.'.'.$key . $keyFile))
+                {
+                    $files = $request->file($this->controller->pathVideo.'.'.$key . $keyFile);
+                    $size = $files->getSize() / 1000;
+                    $filename = $request->m_user_tabs_id
+                        .$this->controller->generateCode()
+                        ."."
+                        .pathinfo($files->getClientOriginalName(), PATHINFO_EXTENSION);
+                    $files->move(storage_path($this->controller->pathVideo), $filename);
+                    array_push(
+                        $arrFile,
+                        [
+                            't_food_tabs_id' => $food->id,
+                            "filename" => $filename,
+                            "size" => $size,
+                            "type" => 2,
+                        ]
+                    );
+                }
+            }
+            $food->attachment()->createMany($arrFile);
         }
     }
 
@@ -163,33 +193,8 @@ class FoodController extends Controller
         try {
             DB::beginTransaction();
             $food = $this->food->where('id',$id)->first();
-            if(isset($request->image) && count($request->image) > 0){
-                $arr_image = $this->storageFileFood(
-                    $request->image,
-                    $this->controller->pathImage,
-                    "FDIM",
-                    "file",
-                    $request);
-                $request->images = $arr_image;
-                foreach ($food->images as $value) {
-                    unlink(storage_path($this->controller->pathImage.'/'.$value));
-                }
-                $food->update([
-                    "images" => null
-                ]);
-            }
-            if(isset($request->video) && count($request->video) > 0){
-                $arr_video = $this->storageFileFood($request->videos,
-                $this->controller->pathImage,"FDVI","file",$request);
-                $request["videos"] = $arr_video;
-                foreach ($food->images as $value) {
-                    unlink(storage_path($this->controller->pathImage.'/'.$value));
-                }
-                $food->update([
-                    "videos" => null
-                ]);
-            }
             $food->update($request->all());
+            $this->addAttachment($food,$request);
             DB::commit();
             return $this->controller->responses("FOOD UPDATED",200, $food);
         } catch (\Throwable $th) {
@@ -198,30 +203,21 @@ class FoodController extends Controller
         }
     }
 
-    public function storageFileFood(
-        $arrays,
-        string $requestKey,
-        string $codeNameFile, 
-        string $keyFile,
-        Request $request)
-    {
-        $arrFile = array();
-        foreach ($arrays as $key => $value) {
-            if($request->hasFile($requestKey.'.'.$key . '.' . $keyFile))
-            {
-                $images = $request->file($requestKey.'.'.$key . '.' . $keyFile);
-                $filename = $codeNameFile."_".($key+1).$request->m_user_tabs_id
-                    .$this->controller->generateCode()
-                    ."."
-                    .pathinfo($images->getClientOriginalName(), PATHINFO_EXTENSION);
-                $images->move(storage_path($requestKey), $filename);
-                array_push($arrFile, $filename);
-            }
+    public function destroyFile($id){
+        try {
+            DB::beginTransaction();
+            $attachment = $this->tFoodAttachmentTab->find($id);
+            $attachment->delete();
+            unlink(storage_path(
+                $attachment->type == 1 ? $this->controller->pathImage : $this->controller->pathVideo
+                .'/'
+                .$attachment->filename));
+            DB::commit();
+            return $this->controller->responses("SUCCESS DESTROY", 200, $attachment);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return $this->controller->responses("FAILURE DESTROY", 500, $th->getMessage());
         }
-        if(count($arrFile) < 1) {
-            return $arrFile = null;
-        }
-        return $arrFile;
     }
 
     /**
