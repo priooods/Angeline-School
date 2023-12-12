@@ -15,6 +15,7 @@ return new class extends Migration
     {
         Schema::create('m_user_tabs', function (Blueprint $table) {
             $table->id();
+            $table->unsignedTinyInteger('m_akses_tabs_id')->default(3);
             $table->char('email', 80)->unique();
             $table->string('password');
             $table->string('repassword');
@@ -22,6 +23,7 @@ return new class extends Migration
             $table->tinyInteger('is_activated')->default(0)->comment('0 = tidak aktif, 1 = aktif');
             $table->tinyInteger('is_deleted')->default(0)->comment('0 = false , 1 = true');
             $table->timestamps();
+            $table->foreign('m_akses_tabs_id')->on('m_akses_tabs')->references('id');
         });
     }
  

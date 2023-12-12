@@ -11,7 +11,7 @@ class MUserTab extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    protected $fillable = ['email','password','repassword','fullname','is_activated','is_deleted'];
+    protected $fillable = ['email','password','repassword','fullname','is_activated','is_deleted','m_akses_tabs_id'];
     protected $hidden = ['created_at','updated_at','password','repassword'];
     
     protected static function newFactory()
