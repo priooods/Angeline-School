@@ -20,9 +20,10 @@ class Controller extends BaseController
         $validate = Validator::make($request->all(), $items);
         if ($validate->fails()) {
             return $this->responses('Failure',401,null,[
-                "type" => "error",
+                "type" => "danger",
                 "title" => "Form tidak valid",
-                "description" => implode(',', $validate->errors()->all()),
+                "color" => 'red',
+                "description" => implode(' & ', $validate->errors()->all()),
             ]);
         } else {
             return null;

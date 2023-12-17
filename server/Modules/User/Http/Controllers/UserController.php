@@ -91,31 +91,39 @@ class UserController extends Controller
     {
         return $this->controller->responses('FORM REGISTER',200,[
             [
-                "key" => "username",
+                "name" => "fullname",
                 "label" => "Fullname",
-                "value" => null,
+                "fullname" => "",
                 "className" => "",
+                "required" => true,
+                "description" => "Maximal input 30 char",
                 "type" => "string"
             ],
             [
-                "key" => "email",
+                "name" => "email",
                 "label" => "Email",
-                "value" => null,
+                "email" => "",
                 "className" => "",
+                "required" => true,
+                "description" => null,
                 "type" => "email"
             ],
             [
-                "key" => "password",
+                "name" => "password",
                 "label" => "Password",
-                "value" => null,
+                "password" => "",
                 "className" => "",
+                "required" => true,
+                "description" => "Minimal input 8 char",
                 "type" => "password"
             ],
             [
-                "key" => "repassword",
+                "name" => "repassword",
                 "label" => "Typing Again Password",
-                "value" => null,
+                "repassword" => "",
                 "className" => "",
+                "required" => true,
+                "description" => null,
                 "type" => "password"
             ]
         ]);
@@ -142,8 +150,14 @@ class UserController extends Controller
             $request['password'] = Hash::make($request->password);
             $user = $this->user->create($request->all());
             DB::commit();
-            return $this->controller->responses('User baru berhasil dibuat', 200,
-                ['token' => $user->createToken('angeline_universe_vlogger')->plainTextToken]);
+            return $this->controller->responses('USER CREATED', 200,
+                ['token' => $user->createToken('angeline_universe_vlogger')->plainTextToken],[
+                    'type' => 'success',
+                    'color' => 'green',
+                    'title' => 'User baru berhasil dibuat',
+                    'description' => 'Kami mengirimkan email verifikasi kepada anda
+                     untuk memulai aktivitas dengan akun anda'
+                ]);
         } catch (\Throwable $th) {
             DB::rollBack();
             return $this->controller->responses($th->getMessage());
